@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">RingtoneApp</string>
+    <string name="hello_text">This application can help you trim your audio and crеate a ringtone\n please open file</string>
+    <string name="default_duration">00:00</string>
+    <string name="fade_in">fade-in</string>
+    <string name="fade_out">fade-out</string>
+    <string name="trim_btn">Trim</string>
+    <string name="open_file_btn">Open file</string>
+    <string name="set_ringtone_btn">Set ringtone</string>
 </resources>

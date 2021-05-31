@@ -1,15 +1,16 @@
 package com.example.ringtoneapp;
 
-import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
 import android.content.Intent;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -30,17 +31,36 @@ public class PlayActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_play);
-        playerView = findViewById(R.id.exoplayerView);
-        setBtn = findViewById(R.id.setBtn);
+        initiateViews();
         setBtn.setOnClickListener(view -> {
-            if (!Settings.System.canWrite(getApplicationContext())) {
-                startManageWriteSettingsActivity(getApplicationContext());
+            if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (!Settings.System.canWrite(getApplicationContext())) {
+                    showPermissionDialog(getApplicationContext());
+                } else {
+                    setRingtone();
+                }
+            } else {
+                setRingtone();
             }
 
-            RingtoneManager.setActualDefaultRingtoneUri(PlayActivity.this,
-                    RingtoneManager.TYPE_RINGTONE, uri);
-            Toast.makeText(PlayActivity.this, "Ringtone successfully installed", Toast.LENGTH_SHORT).show();
         });
+    }
+
+    private void setRingtone(){
+        RingtoneManager.setActualDefaultRingtoneUri(PlayActivity.this,
+                RingtoneManager.TYPE_RINGTONE, uri);
+        if (RingtoneManager.isDefault(uri)) {
+            Toast.makeText(PlayActivity.this,
+                    "Ringtone successfully installed", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(PlayActivity.this,
+                    "Something wrong..", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void initiateViews() {
+        playerView = findViewById(R.id.exoplayer_view);
+        setBtn = findViewById(R.id.set_btn);
     }
 
     @Override
@@ -82,10 +102,19 @@ public class PlayActivity extends AppCompatActivity {
         }
     }
 
-    private static void startManageWriteSettingsActivity(@NonNull Context context) {
-        Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
-        intent.setData(Uri.parse("package:" + context.getApplicationContext().getPackageName()));
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        context.startActivity(intent);
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private  void showPermissionDialog(final Context context) {
+        AlertDialog.Builder alert = new AlertDialog.Builder(PlayActivity.this);
+        alert.setMessage("Please give the permission to set ringtone.");
+        alert.setTitle("Need permission");
+        alert.setNegativeButton("cancel", (dialogInterface, i) -> dialogInterface.dismiss());
+        alert.setPositiveButton("OK", (dialogInterface, i) -> {
+            Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
+            intent.setData(Uri.parse("package:" + context.getApplicationContext().getPackageName()));
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(intent);
+        });
+        alert.show();
     }
+
 }

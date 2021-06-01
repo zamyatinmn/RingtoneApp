@@ -51,13 +51,28 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun openFile() {
-        releasePlayer()
+        simpleExoPlayer?.pause()
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Audio.Media.EXTERNAL_CONTENT_URI)
         startActivityForResult(intent, REQUEST_CODE)
     }
 
+    override fun onPause() {
+        super.onPause()
+        simpleExoPlayer?.pause()
+        isPlay = false
+        ui.imageView.setImageResource(R.drawable.ic_play)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        simpleExoPlayer?.play()
+        isPlay = true
+        ui.imageView.setImageResource(R.drawable.ic_pause)
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (resultCode == RESULT_OK && requestCode == REQUEST_CODE) {
+            releasePlayer()
             chosenAudioUri = data!!.data
             val audioName = getRealPathFromUri(this@MainActivity, chosenAudioUri)
             ui.fileName.text = audioName.substring(audioName.lastIndexOf("/") + 1)
@@ -241,12 +256,12 @@ class MainActivity : AppCompatActivity() {
             Snackbar.LENGTH_LONG
         ).setAction(R.string.settings) {
             openApplicationSettings()
-                Toast.makeText(
-                    applicationContext,
-                    R.string.open_and_grant,
-                    Toast.LENGTH_SHORT
-                ).show()
-            }.show()
+            Toast.makeText(
+                applicationContext,
+                R.string.open_and_grant,
+                Toast.LENGTH_SHORT
+            ).show()
+        }.show()
     }
 
     private fun openApplicationSettings() {

@@ -38,6 +38,7 @@ class PlayActivity : AppCompatActivity() {
                 setRingtone()
             }
         }
+        initializePlayer()
     }
 
     private fun setRingtone() {
@@ -58,14 +59,14 @@ class PlayActivity : AppCompatActivity() {
         }
     }
 
-    override fun onStart() {
-        super.onStart()
-        initializePlayer()
-    }
-
     override fun onResume() {
         super.onResume()
         simpleExoplayer!!.play()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        simpleExoplayer!!.pause()
     }
 
     override fun onDestroy() {

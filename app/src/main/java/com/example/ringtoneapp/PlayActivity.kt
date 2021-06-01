@@ -1,120 +1,111 @@
-package com.example.ringtoneapp;
+package com.example.ringtoneapp
 
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
+import android.content.Context
+import android.content.DialogInterface
+import android.content.Intent
+import android.media.RingtoneManager
+import android.net.Uri
+import android.os.Build
+import android.os.Bundle
+import android.provider.Settings
+import android.widget.Toast
+import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import com.example.ringtoneapp.databinding.ActivityPlayBinding
+import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.SimpleExoPlayer
+import java.io.File
 
-import android.content.Context;
-import android.content.Intent;
-import android.media.RingtoneManager;
-import android.net.Uri;
-import android.os.Build;
-import android.os.Bundle;
-import android.provider.Settings;
-import android.widget.Button;
-import android.widget.Toast;
+class PlayActivity : AppCompatActivity() {
+    private var simpleExoplayer: SimpleExoPlayer? = null
+    private var mediaItem: MediaItem? = null
+    private var uri: Uri? = null
+    lateinit var ui: ActivityPlayBinding
 
-import com.google.android.exoplayer2.MediaItem;
-import com.google.android.exoplayer2.SimpleExoPlayer;
-import com.google.android.exoplayer2.ui.PlayerView;
-
-import java.io.File;
-
-public class PlayActivity extends AppCompatActivity {
-    SimpleExoPlayer simpleExoplayer;
-    PlayerView playerView;
-    MediaItem mediaItem;
-    Uri uri;
-    Button setBtn;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_play);
-        initiateViews();
-        setBtn.setOnClickListener(view -> {
-            if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if (!Settings.System.canWrite(getApplicationContext())) {
-                    showPermissionDialog(getApplicationContext());
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        ui = ActivityPlayBinding.inflate(layoutInflater)
+        setContentView(ui.root)
+        ui.setBtn.setOnClickListener {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (!Settings.System.canWrite(applicationContext)) {
+                    showPermissionDialog(applicationContext)
                 } else {
-                    setRingtone();
+                    setRingtone()
                 }
             } else {
-                setRingtone();
+                setRingtone()
             }
-
-        });
+        }
     }
 
-    private void setRingtone(){
-        RingtoneManager.setActualDefaultRingtoneUri(PlayActivity.this,
-                RingtoneManager.TYPE_RINGTONE, uri);
+    private fun setRingtone() {
+        RingtoneManager.setActualDefaultRingtoneUri(
+            this@PlayActivity,
+            RingtoneManager.TYPE_RINGTONE, uri
+        )
         if (RingtoneManager.isDefault(uri)) {
-            Toast.makeText(PlayActivity.this,
-                    "Ringtone successfully installed", Toast.LENGTH_SHORT).show();
+            Toast.makeText(
+                this@PlayActivity,
+                R.string.ringtone_installed, Toast.LENGTH_SHORT
+            ).show()
         } else {
-            Toast.makeText(PlayActivity.this,
-                    "Something wrong..", Toast.LENGTH_SHORT).show();
+            Toast.makeText(
+                this@PlayActivity,
+                R.string.wrong, Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
-    private void initiateViews() {
-        playerView = findViewById(R.id.exoplayer_view);
-        setBtn = findViewById(R.id.set_btn);
+    override fun onStart() {
+        super.onStart()
+        initializePlayer()
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        initializePlayer();
+    override fun onResume() {
+        super.onResume()
+        simpleExoplayer!!.play()
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        simpleExoplayer.play();
+    override fun onDestroy() {
+        super.onDestroy()
+        releasePlayer()
     }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-        releasePlayer();
-    }
-
-    private void initializePlayer() {
-        simpleExoplayer = new SimpleExoPlayer.Builder(this).build();
-        playerView.setPlayer(simpleExoplayer);
-        playerView.setShowNextButton(false);
-        Intent intent = getIntent();
+    private fun initializePlayer() {
+        simpleExoplayer = SimpleExoPlayer.Builder(this).build()
+        ui.exoplayerView.player = simpleExoplayer
+        ui.exoplayerView.setShowNextButton(false)
+        val intent = intent
         if (intent != null) {
-            String filePath = intent.getStringExtra("filepath");
-            uri = Uri.fromFile(new File(filePath));
+            val filePath = intent.getStringExtra("filepath")
+            uri = Uri.fromFile(File(filePath))
         }
-        mediaItem = MediaItem.fromUri(uri);
-        simpleExoplayer.setMediaItem(mediaItem);
-        simpleExoplayer.prepare();
+        mediaItem = MediaItem.fromUri(uri!!)
+        simpleExoplayer!!.setMediaItem(mediaItem!!)
+        simpleExoplayer!!.prepare()
     }
 
-    private void releasePlayer() {
+    private fun releasePlayer() {
         if (simpleExoplayer != null) {
-            simpleExoplayer.release();
-            simpleExoplayer = null;
+            simpleExoplayer!!.release()
+            simpleExoplayer = null
         }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
-    private  void showPermissionDialog(final Context context) {
-        AlertDialog.Builder alert = new AlertDialog.Builder(PlayActivity.this);
-        alert.setMessage("Please give the permission to set ringtone.");
-        alert.setTitle("Need permission");
-        alert.setNegativeButton("cancel", (dialogInterface, i) -> dialogInterface.dismiss());
-        alert.setPositiveButton("OK", (dialogInterface, i) -> {
-            Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
-            intent.setData(Uri.parse("package:" + context.getApplicationContext().getPackageName()));
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            context.startActivity(intent);
-        });
-        alert.show();
+    private fun showPermissionDialog(context: Context) {
+        val alert = AlertDialog.Builder(this@PlayActivity)
+        alert.setMessage(R.string.give_perm)
+        alert.setTitle(R.string.need_perm)
+        alert.setNegativeButton(R.string.cancel) { dialogInterface: DialogInterface, i: Int -> dialogInterface.dismiss() }
+        alert.setPositiveButton(R.string.ok) { dialogInterface: DialogInterface?, i: Int ->
+            val intent = Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS)
+            intent.data = Uri.parse("package:" + context.applicationContext.packageName)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            context.startActivity(intent)
+        }
+        alert.show()
     }
-
 }

@@ -1,41 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:id="@+id/activity_view"
+    android:id="@+id/activityView"
     android:layout_height="match_parent">
 
     <TextView
-        android:id="@+id/file_name"
+        android:id="@+id/fileName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/image_view"
+        android:layout_above="@+id/imageView"
         android:layout_marginBottom="144dp"
         android:gravity="center"
         android:text="@string/hello_text"
         android:textSize="25sp" />
 
     <ImageView
-        android:id="@+id/image_view"
+        android:id="@+id/imageView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
         android:src="@drawable/ic_play" />
 
     <TextView
-        android:id="@+id/left_text_view"
+        android:id="@+id/leftTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/seek_bar"
+        android:layout_below="@+id/seekBar"
         android:layout_marginStart="30dp"
         android:layout_marginTop="10dp"
         android:text="@string/default_duration"
         android:textSize="12sp" />
 
     <TextView
-        android:id="@+id/right_text_view"
+        android:id="@+id/rightTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/seek_bar"
+        android:layout_below="@+id/seekBar"
         android:layout_alignParentEnd="true"
         android:layout_marginTop="10dp"
         android:layout_marginEnd="30dp"
@@ -44,7 +44,7 @@
         android:textSize="12sp" />
 
     <org.florescu.android.rangeseekbar.RangeSeekBar
-        android:id="@+id/seek_bar"
+        android:id="@+id/seekBar"
         android:layout_width="match_parent"
         android:layout_height="100dp"
         android:layout_marginStart="17dp"
@@ -52,19 +52,19 @@
         android:layout_marginEnd="17dp" />
 
     <CheckBox
-        android:id="@+id/fade_in_CB"
+        android:id="@+id/fadeInCB"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/left_text_view"
+        android:layout_above="@+id/leftTextView"
         android:layout_marginStart="20dp"
         android:layout_marginBottom="40dp"
         android:text="@string/fade_in" />
 
     <CheckBox
-        android:id="@+id/fade_out_CB"
+        android:id="@+id/fadeOutCB"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/right_text_view"
+        android:layout_above="@+id/rightTextView"
         android:layout_alignParentEnd="true"
         android:layout_marginEnd="20dp"
         android:layout_marginBottom="40dp"
@@ -75,7 +75,7 @@
         android:layout_height="50dp"
         android:layout_alignParentBottom="true">
         <Button
-            android:id="@+id/trim_btn"
+            android:id="@+id/trimBtn"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_weight="1"
@@ -83,7 +83,7 @@
             style="?android:attr/buttonBarButtonStyle" />
 
         <Button
-            android:id="@+id/open_file_btn"
+            android:id="@+id/openFileBtn"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_weight="1"

@@ -1,4 +1,4 @@
-package com.example.ringtoneapp
+package com.example.ringtoneapp.trimmer
 
 import android.os.Environment
 import android.util.Log
@@ -6,27 +6,16 @@ import com.arthenica.mobileffmpeg.FFmpeg
 import java.io.File
 import java.util.*
 
-class Trimmer {
+class Trimmer : ITrimmer {
     private lateinit var originalPath: String
     private lateinit var dest: File
     private var fadeIn = false
     private var fadeOut = false
     private var duration = 0
 
-    fun getTime(seconds: Int): String {
-        val rem = seconds % 3600
-        val mn = rem / 60
-        val sec = rem % 60
-        return String.format("%02d:%02d", mn, sec)
-    }
-
-    fun trim(
-        start: Int,
-        end: Int,
-        fileName: String,
-        fadeIn: Boolean,
-        fadeOut: Boolean,
-        originalPath: String
+    override fun trim(
+        start: Int, end: Int, fileName: String,
+        fadeIn: Boolean, fadeOut: Boolean, originalPath: String
     ): Int {
         this.fadeIn = fadeIn
         this.fadeOut = fadeOut
@@ -41,7 +30,7 @@ class Trimmer {
         return FFmpeg.execute(prepareCommand(start))
     }
 
-    val absolutePath: String
+    override val absolutePath: String
         get() = dest.absolutePath
 
     private fun prepareCommand(start: Int): Array<String> {

@@ -1,3 +1,28 @@
 <resources>
     <string name="app_name">RingtoneApp</string>
+    <string name="hello_text">This application can help you trim your audio and crеate a ringtone\n please open file</string>
+    <string name="default_duration">00:00</string>
+    <string name="fade_in">fade-in</string>
+    <string name="fade_out">fade-out</string>
+    <string name="trim_btn">Trim</string>
+    <string name="open_file_btn">Open file</string>
+    <string name="set_ringtone_btn">Set ringtone</string>
+    <string name="set_audio_name">Set audio name</string>
+    <string name="trim_success">Audio trimmed successfully</string>
+    <string name="cancel_process">The process was canceled by user</string>
+    <string name="error_process">The process was terminated with an error. Code:</string>
+    <string name="reason_for_permission">Storage permission is required to open and save a new file</string>
+    <string name="grant">GRANT</string>
+    <string name="perm_deny">Storage Permissions denied.</string>
+    <string name="perm_not_grant">Storage permission isn\'t granted</string>
+    <string name="open_and_grant">Open Permissions and grant the Storage permission</string>
+    <string name="settings">SETTINGS</string>
+    <string name="cancel">cancel</string>
+    <string name="submit">submit</string>
+    <string name="audio_name">Audio name</string>
+    <string name="need_perm">Need permission</string>
+    <string name="ok">OK</string>
+    <string name="give_perm">Please give the permission to set ringtone.</string>
+    <string name="wrong">Something wrong..</string>
+    <string name="ringtone_installed">Ringtone successfully installed</string>
 </resources>

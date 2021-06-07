@@ -1,98 +1,63 @@
-package com.example.ringtoneapp
+package com.example.ringtoneapp.ui
 
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
-import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.example.ringtoneapp.App
+import com.example.ringtoneapp.R
 import com.example.ringtoneapp.databinding.ActivityPlayBinding
-import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.SimpleExoPlayer
-import java.io.File
+import com.example.ringtoneapp.presenters.PlayPresenter
+import javax.inject.Inject
 
 class PlayActivity : AppCompatActivity() {
-    private var simpleExoplayer: SimpleExoPlayer? = null
-    private var mediaItem: MediaItem? = null
-    private var uri: Uri? = null
-    lateinit var ui: ActivityPlayBinding
+    private lateinit var ui: ActivityPlayBinding
+    @Inject
+    lateinit var presenter: PlayPresenter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         ui = ActivityPlayBinding.inflate(layoutInflater)
+
+        (applicationContext as App).appComponent.inject(this)
+        presenter.bindContext(this)
+
         setContentView(ui.root)
+        ui.exoplayerView.player = presenter.init()
+        ui.exoplayerView.setShowNextButton(false)
+
         ui.setBtn.setOnClickListener {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 if (!Settings.System.canWrite(applicationContext)) {
                     showPermissionDialog(applicationContext)
                 } else {
-                    setRingtone()
+                    presenter.setRingtone()
                 }
             } else {
-                setRingtone()
+                presenter.setRingtone()
             }
-        }
-        initializePlayer()
-    }
-
-    private fun setRingtone() {
-        RingtoneManager.setActualDefaultRingtoneUri(
-            this@PlayActivity,
-            RingtoneManager.TYPE_RINGTONE, uri
-        )
-        if (RingtoneManager.isDefault(uri)) {
-            Toast.makeText(
-                this@PlayActivity,
-                R.string.ringtone_installed, Toast.LENGTH_SHORT
-            ).show()
-        } else {
-            Toast.makeText(
-                this@PlayActivity,
-                R.string.wrong, Toast.LENGTH_SHORT
-            ).show()
         }
     }
 
     override fun onResume() {
         super.onResume()
-        simpleExoplayer!!.play()
+        this.presenter.play()
     }
 
     override fun onPause() {
         super.onPause()
-        simpleExoplayer!!.pause()
+        this.presenter.pause()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        releasePlayer()
-    }
-
-    private fun initializePlayer() {
-        simpleExoplayer = SimpleExoPlayer.Builder(this).build()
-        ui.exoplayerView.player = simpleExoplayer
-        ui.exoplayerView.setShowNextButton(false)
-        val intent = intent
-        if (intent != null) {
-            val filePath = intent.getStringExtra("filepath")
-            uri = Uri.fromFile(File(filePath))
-        }
-        mediaItem = MediaItem.fromUri(uri!!)
-        simpleExoplayer!!.setMediaItem(mediaItem!!)
-        simpleExoplayer!!.prepare()
-    }
-
-    private fun releasePlayer() {
-        if (simpleExoplayer != null) {
-            simpleExoplayer!!.release()
-            simpleExoplayer = null
-        }
+        this.presenter.release()
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)

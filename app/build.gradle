@@ -2,6 +2,11 @@ plugins {
     id 'com.android.application'
 }
 apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
+
+ext {
+    dagger_version = '2.36'
+}
 
 android {
     compileSdkVersion 30
@@ -46,6 +51,9 @@ dependencies {
     implementation 'com.google.android.exoplayer:exoplayer:2.14.0'
     implementation "androidx.core:core-ktx:+"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+
+    implementation "com.google.dagger:dagger:$dagger_version"
+    kapt "com.google.dagger:dagger-compiler:$dagger_version"
 }
 repositories {
     mavenCentral()

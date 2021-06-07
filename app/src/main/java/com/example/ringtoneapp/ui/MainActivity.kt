@@ -1,11 +1,9 @@
-package com.example.ringtoneapp
+package com.example.ringtoneapp.ui
 
 import android.Manifest
-import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.database.Cursor
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -20,26 +18,32 @@ import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.content.PermissionChecker
+import com.example.ringtoneapp.App
+import com.example.ringtoneapp.R
 import com.example.ringtoneapp.databinding.ActivityMainBinding
-import com.google.android.exoplayer2.MediaItem
+import com.example.ringtoneapp.presenters.IMainPresenter
 import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.material.snackbar.Snackbar
+import javax.inject.Inject
 
 class MainActivity : AppCompatActivity() {
     private val PERMISSION_CODE = 100
     private val REQUEST_CODE = 10
     private var isPlay = false
     private var duration = 0
-    private var chosenAudioUri: Uri? = null
-    private var simpleExoPlayer: SimpleExoPlayer? = null
-    private val presenter = Trimmer()
-    private var isFirstStarted = false
+    private lateinit var chosenAudioUri: Uri
     lateinit var ui: ActivityMainBinding
+
+    @Inject
+    lateinit var presenter: IMainPresenter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         ui = ActivityMainBinding.inflate(layoutInflater)
+
+        (applicationContext as App).appComponent.inject(this)
+
         setContentView(ui.root)
         ui.openFileBtn.setOnClickListener {
             if (hasPermissions()) {
@@ -51,51 +55,60 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun openFile() {
-        simpleExoPlayer?.pause()
+        if (isPlay) {
+            presenter.pause()
+        }
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Audio.Media.EXTERNAL_CONTENT_URI)
         startActivityForResult(intent, REQUEST_CODE)
     }
 
     override fun onPause() {
         super.onPause()
-        simpleExoPlayer?.pause()
-        isPlay = false
-        ui.imageView.setImageResource(R.drawable.ic_play)
+        if (presenter.isFirstStarted) {
+            presenter.pause()
+            isPlay = false
+            ui.imageView.setImageResource(R.drawable.ic_play)
+        }
     }
 
     override fun onResume() {
         super.onResume()
-        simpleExoPlayer?.play()
-        isPlay = true
-        ui.imageView.setImageResource(R.drawable.ic_pause)
+        if (presenter.isFirstStarted) {
+            presenter.play()
+            isPlay = true
+            ui.imageView.setImageResource(R.drawable.ic_pause)
+        }
+
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (resultCode == RESULT_OK && requestCode == REQUEST_CODE) {
-            releasePlayer()
-            chosenAudioUri = data!!.data
-            val audioName = getRealPathFromUri(this@MainActivity, chosenAudioUri)
-            ui.fileName.text = audioName.substring(audioName.lastIndexOf("/") + 1)
-            initializePlayer()
-            simpleExoPlayer!!.addListener(object : Player.Listener {
+        if (resultCode == RESULT_OK && requestCode == REQUEST_CODE && data != null) {
+            if (presenter.isFirstStarted) {
+                presenter.release()
+            }
+            chosenAudioUri = data.data!!
+            presenter.bindContext(this@MainActivity)
+            val player = presenter.init(chosenAudioUri)
+            ui.fileName.text = presenter.getAudioName()
+            player?.addListener(object : Player.Listener {
                 override fun onPlaybackStateChanged(state: Int) {
-                    if (state == Player.STATE_READY && !isFirstStarted) {
-                        isFirstStarted = true
-                        duration = simpleExoPlayer!!.duration.toInt() / 1000
+                    if (state == Player.STATE_READY && !presenter.isFirstStarted) {
+                        presenter.isFirstStarted = true
+                        duration = player.duration.toInt() / 1000
                         ui.rightTextView.text = presenter.getTime(duration)
                         ui.seekBar.setRangeValues(0, duration)
                         ui.seekBar.selectedMinValue = 0
                         ui.seekBar.selectedMaxValue = duration
                         ui.seekBar.isEnabled = true
                         ui.seekBar.setOnRangeSeekBarChangeListener { bar, minValue, maxValue ->
-                            simpleExoPlayer!!.seekTo((minValue as Int * 1000).toLong())
+                            player.seekTo((minValue as Int * 1000).toLong())
                             ui.leftTextView.text = presenter.getTime(bar.selectedMinValue.toInt())
                             ui.rightTextView.text = presenter.getTime(bar.selectedMaxValue.toInt())
                         }
                         val handler = Handler(Looper.getMainLooper())
                         handler.postDelayed({
-                            if (simpleExoPlayer!!.currentPosition >= ui.seekBar.selectedMaxValue.toInt() * 1000) {
-                                simpleExoPlayer!!.seekTo((ui.seekBar.selectedMinValue.toLong() * 1000))
+                            if (player.currentPosition >= ui.seekBar.selectedMaxValue.toInt() * 1000) {
+                                player.seekTo((ui.seekBar.selectedMinValue.toLong() * 1000))
                             }
                         }, 1000)
                     }
@@ -103,17 +116,17 @@ class MainActivity : AppCompatActivity() {
             })
             ui.imageView.setOnClickListener {
                 if (isPlay) {
-                    simpleExoPlayer!!.pause()
+                    presenter.pause()
                     isPlay = false
                     ui.imageView.setImageResource(R.drawable.ic_play)
                 } else {
-                    simpleExoPlayer!!.play()
+                    presenter.play()
                     isPlay = true
                     ui.imageView.setImageResource(R.drawable.ic_pause)
                 }
             }
             ui.trimBtn.setOnClickListener {
-                simpleExoPlayer!!.stop()
+                presenter.stop()
                 val alert = AlertDialog.Builder(this@MainActivity)
                 val linearLayout = LinearLayout(this@MainActivity)
                 linearLayout.orientation = LinearLayout.VERTICAL
@@ -136,15 +149,14 @@ class MainActivity : AppCompatActivity() {
                     val result = presenter.trim(
                         ui.seekBar.selectedMinValue.toInt() * 1000,
                         ui.seekBar.selectedMaxValue.toInt() * 1000, filePrefix,
-                        ui.fadeInCB.isChecked, ui.fadeOutCB.isChecked,
-                        getRealPathFromUri(applicationContext, chosenAudioUri)
+                        ui.fadeInCB.isChecked, ui.fadeOutCB.isChecked
                     )
                     when (result) {
                         0 -> {
                             Toast.makeText(this, R.string.trim_success, Toast.LENGTH_SHORT)
                                 .show()
                             val intent = Intent(this@MainActivity, PlayActivity::class.java)
-                            intent.putExtra("filepath", presenter.absolutePath)
+                            intent.putExtra("filepath", presenter.getAbsolutePath())
                             startActivity(intent)
                         }
                         255 -> Toast.makeText(
@@ -167,34 +179,15 @@ class MainActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
     }
 
-    private fun getRealPathFromUri(applicationContext: Context, containUri: Uri?): String {
-        var cursor: Cursor? = null
-        return try {
-            val proj = arrayOf(MediaStore.Audio.Media.DATA)
-            cursor = applicationContext.contentResolver.query(
-                containUri!!, proj,
-                null, null, null
-            )
-            val columnIndex = cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
-            cursor.moveToFirst()
-            cursor.getString(columnIndex)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            ""
-        } finally {
-            cursor?.close()
-        }
-    }
-
     override fun onDestroy() {
         super.onDestroy()
-        releasePlayer()
+        presenter.release()
     }
 
     private fun hasPermissions(): Boolean {
         val permissions = arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE)
         for (perms in permissions) {
-            val res = checkCallingOrSelfPermission(perms)
+            val res = PermissionChecker.checkCallingOrSelfPermission(this, perms)
             if (res != PackageManager.PERMISSION_GRANTED) {
                 return false
             }
@@ -270,22 +263,5 @@ class MainActivity : AppCompatActivity() {
             Uri.parse("package:$packageName")
         )
         startActivityForResult(appSettingsIntent, PERMISSION_CODE)
-    }
-
-    private fun initializePlayer() {
-        simpleExoPlayer = SimpleExoPlayer.Builder(this).build()
-        val mediaItem = MediaItem.fromUri(
-            chosenAudioUri!!
-        )
-        simpleExoPlayer!!.setMediaItem(mediaItem)
-        simpleExoPlayer!!.prepare()
-    }
-
-    private fun releasePlayer() {
-        if (simpleExoPlayer != null) {
-            isFirstStarted = false
-            simpleExoPlayer!!.release()
-            simpleExoPlayer = null
-        }
     }
 }

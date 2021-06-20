@@ -25,4 +25,10 @@
     <string name="give_perm">Please give the permission to set ringtone.</string>
     <string name="wrong">Something wrong..</string>
     <string name="ringtone_installed">Ringtone successfully installed</string>
+    <string name="set_to_contact">Set to contact</string>
+
+    <string name="reason_for_permission2">Contact permission is required to set ringtone to any contact</string>
+    <string name="perm_deny2">Contact Permissions denied.</string>
+    <string name="perm_not_grant2">Contact permission isn\'t granted</string>
+    <string name="open_and_grant2">Open Permissions and grant the Contact permission</string>
 </resources>

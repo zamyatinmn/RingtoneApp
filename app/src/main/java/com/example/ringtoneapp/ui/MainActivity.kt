@@ -3,53 +3,53 @@ package com.example.ringtoneapp.ui
 import android.Manifest
 import android.content.DialogInterface
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
-import android.provider.Settings
 import android.text.InputType
 import android.view.Gravity
-import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.content.PermissionChecker
 import com.example.ringtoneapp.App
+import com.example.ringtoneapp.Perms
 import com.example.ringtoneapp.R
 import com.example.ringtoneapp.databinding.ActivityMainBinding
 import com.example.ringtoneapp.presenters.IMainPresenter
 import com.google.android.exoplayer2.Player
-import com.google.android.material.snackbar.Snackbar
 import javax.inject.Inject
 
 class MainActivity : AppCompatActivity() {
-    private val PERMISSION_CODE = 100
     private val REQUEST_CODE = 10
     private var isPlay = false
     private var duration = 0
     private lateinit var chosenAudioUri: Uri
     lateinit var ui: ActivityMainBinding
-
+    lateinit var perms: Perms
     @Inject
     lateinit var presenter: IMainPresenter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         ui = ActivityMainBinding.inflate(layoutInflater)
-
         (applicationContext as App).appComponent.inject(this)
-
         setContentView(ui.root)
+
+        perms = Perms(this, Manifest.permission.WRITE_EXTERNAL_STORAGE
+            , arrayOf(
+                R.string.reason_for_permission,
+                R.string.perm_deny,
+                R.string.perm_not_grant,
+                R.string.open_and_grant
+            ), ui.activityView)
+
         ui.openFileBtn.setOnClickListener {
-            if (hasPermissions()) {
+            if (perms.hasPermission()) {
                 openFile()
             } else {
-                requestPermissionWithRationale()
+                perms.requestPermissionWithRationale()
             }
         }
     }
@@ -184,84 +184,17 @@ class MainActivity : AppCompatActivity() {
         presenter.release()
     }
 
-    private fun hasPermissions(): Boolean {
-        val permissions = arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-        for (perms in permissions) {
-            val res = PermissionChecker.checkCallingOrSelfPermission(this, perms)
-            if (res != PackageManager.PERMISSION_GRANTED) {
-                return false
-            }
-        }
-        return true
-    }
-
-    private fun requestPermissionWithRationale() {
-        if (ActivityCompat.shouldShowRequestPermissionRationale(
-                this,
-                Manifest.permission.READ_EXTERNAL_STORAGE
-            )
-        ) {
-            val message = R.string.reason_for_permission
-            Snackbar.make(findViewById(R.id.activityView), message, Snackbar.LENGTH_LONG)
-                .setAction(R.string.grant) { v: View? -> requestPerms() }.show()
-        } else {
-            requestPerms()
-        }
-    }
-
-    private fun requestPerms() {
-        val permissions = arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            requestPermissions(permissions, PERMISSION_CODE)
-        }
-    }
-
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<String>,
         grantResults: IntArray
     ) {
-        var allowed = true
-        if (requestCode == PERMISSION_CODE) {
-            for (res in grantResults) {
-                allowed = allowed && res == PackageManager.PERMISSION_GRANTED
-            }
-        } else {
-            allowed = false
-        }
-        if (allowed) {
+
+        if (perms.onRequest(requestCode, grantResults)) {
             openFile()
-        } else {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if (shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                    Toast.makeText(this, R.string.perm_deny, Toast.LENGTH_SHORT).show()
-                } else {
-                    showNoStoragePermissionSnackbar()
-                }
-            }
         }
+
     }
 
-    private fun showNoStoragePermissionSnackbar() {
-        Snackbar.make(
-            ui.activityView,
-            R.string.perm_not_grant,
-            Snackbar.LENGTH_LONG
-        ).setAction(R.string.settings) {
-            openApplicationSettings()
-            Toast.makeText(
-                applicationContext,
-                R.string.open_and_grant,
-                Toast.LENGTH_SHORT
-            ).show()
-        }.show()
-    }
 
-    private fun openApplicationSettings() {
-        val appSettingsIntent = Intent(
-            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-            Uri.parse("package:$packageName")
-        )
-        startActivityForResult(appSettingsIntent, PERMISSION_CODE)
-    }
 }

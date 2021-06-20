@@ -1,25 +1,34 @@
 package com.example.ringtoneapp.ui
 
+import android.Manifest
+import android.content.ContentValues
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.ContactsContract
 import android.provider.Settings
+import android.view.View
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.ringtoneapp.App
+import com.example.ringtoneapp.Perms
 import com.example.ringtoneapp.R
 import com.example.ringtoneapp.databinding.ActivityPlayBinding
 import com.example.ringtoneapp.presenters.PlayPresenter
+import com.sun.tools.javac.tree.TreeInfo.args
 import javax.inject.Inject
+
 
 class PlayActivity : AppCompatActivity() {
     private lateinit var ui: ActivityPlayBinding
     @Inject
     lateinit var presenter: PlayPresenter
+
+    private lateinit var perms: Perms
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,6 +38,16 @@ class PlayActivity : AppCompatActivity() {
         presenter.bindContext(this)
 
         setContentView(ui.root)
+
+        perms = Perms(this, Manifest.permission.WRITE_CONTACTS
+            , arrayOf(
+                R.string.reason_for_permission2,
+                R.string.perm_deny2,
+                R.string.perm_not_grant2,
+                R.string.open_and_grant2
+            ), ui.activityView)
+
+
         ui.exoplayerView.player = presenter.init()
         ui.exoplayerView.setShowNextButton(false)
 
@@ -42,6 +61,24 @@ class PlayActivity : AppCompatActivity() {
             } else {
                 presenter.setRingtone()
             }
+        }
+
+        ui.setContactBtn.setOnClickListener(View.OnClickListener {
+            if (perms.hasPermission()){
+
+            } else{
+                perms.requestPermissionWithRationale()
+            }
+        })
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        if (perms.onRequest(requestCode, grantResults)) {
+
         }
     }
 

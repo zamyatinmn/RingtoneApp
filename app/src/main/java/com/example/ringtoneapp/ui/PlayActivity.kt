@@ -1,25 +1,28 @@
 package com.example.ringtoneapp.ui
 
 import android.Manifest
+import android.app.Activity
 import android.content.ContentValues
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
+import android.media.tv.TvContract.Channels.CONTENT_URI
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.ContactsContract
+import android.provider.ContactsContract.Contacts.CONTENT_URI
 import android.provider.Settings
 import android.view.View
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import com.example.ringtoneapp.App
 import com.example.ringtoneapp.Perms
 import com.example.ringtoneapp.R
 import com.example.ringtoneapp.databinding.ActivityPlayBinding
 import com.example.ringtoneapp.presenters.PlayPresenter
-import com.sun.tools.javac.tree.TreeInfo.args
 import javax.inject.Inject
 
 
@@ -65,7 +68,7 @@ class PlayActivity : AppCompatActivity() {
 
         ui.setContactBtn.setOnClickListener(View.OnClickListener {
             if (perms.hasPermission()){
-
+                pickContact()
             } else{
                 perms.requestPermissionWithRationale()
             }
@@ -78,8 +81,23 @@ class PlayActivity : AppCompatActivity() {
         grantResults: IntArray
     ) {
         if (perms.onRequest(requestCode, grantResults)) {
-
+            pickContact()
         }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 1){
+            if (data != null) {
+                data.data?.let { presenter.setContactRingtone(it) }
+            }
+        }
+    }
+
+    fun pickContact(){
+        val intent = Intent(Intent.ACTION_PICK)
+        intent.data = ContactsContract.Contacts.CONTENT_URI
+        ActivityCompat.startActivityForResult(this, intent, 1, null)
     }
 
     override fun onResume() {

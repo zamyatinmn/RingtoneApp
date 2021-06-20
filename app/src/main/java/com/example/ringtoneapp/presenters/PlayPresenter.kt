@@ -3,12 +3,14 @@ package com.example.ringtoneapp.presenters
 import android.app.Activity
 import android.content.ContentValues
 import android.content.Context
+import android.content.Intent
 import android.media.RingtoneManager
 import android.net.Uri
 import android.provider.ContactsContract
 import android.widget.Toast
-import com.example.ringtoneapp.player.ISimplePlayer
+import androidx.core.app.ActivityCompat.startActivityForResult
 import com.example.ringtoneapp.R
+import com.example.ringtoneapp.player.ISimplePlayer
 import com.google.android.exoplayer2.Player
 import java.io.File
 import javax.inject.Inject
@@ -59,13 +61,13 @@ class PlayPresenter @Inject constructor(private val player: ISimplePlayer) : IPl
         }
     }
 
-    fun setContactRingtone(){
+    fun setContactRingtone(contact: Uri){
         val values = ContentValues()
         values.put(
             ContactsContract.Contacts.CUSTOM_RINGTONE,
             getUriFromIntent().toString()
         )
-        context.getContentResolver().update(contactUri, values, null, null)
+        context.getContentResolver().update(contact, values, null, null)
     }
 
     private fun getUriFromIntent(): Uri {

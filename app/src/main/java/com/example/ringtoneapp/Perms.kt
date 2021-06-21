@@ -23,7 +23,12 @@ import com.google.android.material.snackbar.Snackbar
  * 4 - Please open the permission menu and issue the required permission
  * @param activityView Basic view
  */
-class Perms(val context: Context, val permission: String, texts: Array<Int>, val activityView: View) {
+class Perms(
+    val context: Context,
+    private val permission: String,
+    texts: Array<Int>,
+    private val activityView: View
+) {
     private val PERMISSION_CODE = 100
     private var texts: Array<Int> = arrayOf(
         R.string.reason_for_permission,
@@ -65,7 +70,6 @@ class Perms(val context: Context, val permission: String, texts: Array<Int>, val
         if (shouldShowRequestPermissionRationale(
                 context as Activity,
                 permission
-//                Manifest.permission.READ_EXTERNAL_STORAGE
             )
         ) {
             val message = texts[0]

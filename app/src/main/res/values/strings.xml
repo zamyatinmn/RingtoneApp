@@ -11,11 +11,7 @@
     <string name="trim_success">Audio trimmed successfully</string>
     <string name="cancel_process">The process was canceled by user</string>
     <string name="error_process">The process was terminated with an error. Code:</string>
-    <string name="reason_for_permission">Storage permission is required to open and save a new file</string>
     <string name="grant">GRANT</string>
-    <string name="perm_deny">Storage Permissions denied.</string>
-    <string name="perm_not_grant">Storage permission isn\'t granted</string>
-    <string name="open_and_grant">Open Permissions and grant the Storage permission</string>
     <string name="settings">SETTINGS</string>
     <string name="cancel">cancel</string>
     <string name="submit">submit</string>
@@ -27,8 +23,18 @@
     <string name="ringtone_installed">Ringtone successfully installed</string>
     <string name="set_to_contact">Set to contact</string>
 
-    <string name="reason_for_permission2">Contact permission is required to set ringtone to any contact</string>
-    <string name="perm_deny2">Contact Permissions denied.</string>
-    <string name="perm_not_grant2">Contact permission isn\'t granted</string>
-    <string name="open_and_grant2">Open Permissions and grant the Contact permission</string>
+    <string name="reason_for_permission">Permission is required for work</string>
+    <string name="perm_deny">Permissions denied.</string>
+    <string name="perm_not_grant">Permission isn\'t granted</string>
+    <string name="open_and_grant">Open Permissions and grant the permission</string>
+
+    <string name="reason_for_permission_storage">Storage permission is required to open and save a new file</string>
+    <string name="perm_deny_storage">Storage Permissions denied.</string>
+    <string name="perm_not_grant_storage">Storage permission isn\'t granted</string>
+    <string name="open_and_grant_storage">Open Permissions and grant the Storage permission</string>
+
+    <string name="reason_for_permission_contact">Contact permission is required to set ringtone to any contact</string>
+    <string name="perm_deny_contact">Contact Permissions denied.</string>
+    <string name="perm_not_grant_contact">Contact permission isn\'t granted</string>
+    <string name="open_and_grant_contact">Open Permissions and grant the Contact permission</string>
 </resources>

@@ -1,19 +1,14 @@
 package com.example.ringtoneapp.ui
 
 import android.Manifest
-import android.app.Activity
-import android.content.ContentValues
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
-import android.media.tv.TvContract.Channels.CONTENT_URI
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.ContactsContract
-import android.provider.ContactsContract.Contacts.CONTENT_URI
 import android.provider.Settings
-import android.view.View
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -28,6 +23,7 @@ import javax.inject.Inject
 
 class PlayActivity : AppCompatActivity() {
     private lateinit var ui: ActivityPlayBinding
+
     @Inject
     lateinit var presenter: PlayPresenter
 
@@ -42,13 +38,14 @@ class PlayActivity : AppCompatActivity() {
 
         setContentView(ui.root)
 
-        perms = Perms(this, Manifest.permission.WRITE_CONTACTS
-            , arrayOf(
-                R.string.reason_for_permission2,
-                R.string.perm_deny2,
-                R.string.perm_not_grant2,
-                R.string.open_and_grant2
-            ), ui.activityView)
+        perms = Perms(
+            this, Manifest.permission.WRITE_CONTACTS, arrayOf(
+                R.string.reason_for_permission_contact,
+                R.string.perm_deny_contact,
+                R.string.perm_not_grant_contact,
+                R.string.open_and_grant_contact
+            ), ui.activityView
+        )
 
 
         ui.exoplayerView.player = presenter.init()
@@ -66,13 +63,13 @@ class PlayActivity : AppCompatActivity() {
             }
         }
 
-        ui.setContactBtn.setOnClickListener(View.OnClickListener {
-            if (perms.hasPermission()){
+        ui.setContactBtn.setOnClickListener {
+            if (perms.hasPermission()) {
                 pickContact()
-            } else{
+            } else {
                 perms.requestPermissionWithRationale()
             }
-        })
+        }
     }
 
     override fun onRequestPermissionsResult(
@@ -87,14 +84,14 @@ class PlayActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == 1){
+        if (requestCode == 1) {
             if (data != null) {
                 data.data?.let { presenter.setContactRingtone(it) }
             }
         }
     }
 
-    fun pickContact(){
+    private fun pickContact() {
         val intent = Intent(Intent.ACTION_PICK)
         intent.data = ContactsContract.Contacts.CONTENT_URI
         ActivityCompat.startActivityForResult(this, intent, 1, null)

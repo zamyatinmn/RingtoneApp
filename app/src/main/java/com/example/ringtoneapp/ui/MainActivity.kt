@@ -27,7 +27,8 @@ class MainActivity : AppCompatActivity() {
     private var duration = 0
     private lateinit var chosenAudioUri: Uri
     lateinit var ui: ActivityMainBinding
-    lateinit var perms: Perms
+    private lateinit var perms: Perms
+
     @Inject
     lateinit var presenter: IMainPresenter
 
@@ -37,13 +38,14 @@ class MainActivity : AppCompatActivity() {
         (applicationContext as App).appComponent.inject(this)
         setContentView(ui.root)
 
-        perms = Perms(this, Manifest.permission.WRITE_EXTERNAL_STORAGE
-            , arrayOf(
-                R.string.reason_for_permission,
-                R.string.perm_deny,
-                R.string.perm_not_grant,
-                R.string.open_and_grant
-            ), ui.activityView)
+        perms = Perms(
+            this, Manifest.permission.WRITE_EXTERNAL_STORAGE, arrayOf(
+                R.string.reason_for_permission_storage,
+                R.string.perm_deny_storage,
+                R.string.perm_not_grant_storage,
+                R.string.open_and_grant_storage
+            ), ui.activityView
+        )
 
         ui.openFileBtn.setOnClickListener {
             if (perms.hasPermission()) {
@@ -189,12 +191,8 @@ class MainActivity : AppCompatActivity() {
         permissions: Array<String>,
         grantResults: IntArray
     ) {
-
         if (perms.onRequest(requestCode, grantResults)) {
             openFile()
         }
-
     }
-
-
 }
